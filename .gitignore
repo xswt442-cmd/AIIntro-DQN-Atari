@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+.venv/
+env/
+.conda/
+
+# IDE / Editor
+.vscode/
+.idea/
+.claude
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Training outputs
+*.pth
+*.pt
+checkpoints/
+results/
+runs/
+logs/
+
+# Video / Media
+*.mp4
+*.mov
+*.gif
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# Notebook
+.ipynb_checkpoints/
+
+# PPT temp files
+~$*.pptx
+
+# Project
+needs.md
+1.py
