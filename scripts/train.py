@@ -20,11 +20,11 @@ def main():
     parser = argparse.ArgumentParser(description="Train DQN on Atari")
     parser.add_argument("--env", default="PongNoFrameskip-v4")
     parser.add_argument("--episodes", type=int, default=5000)
-    parser.add_argument("--lr", type=float, default=2.5e-4)
+    parser.add_argument("--lr", type=float, default=1e-4) # Adam 通常推荐使用 1e-4
     parser.add_argument("--gamma", type=float, default=0.99)
-    parser.add_argument("--buffer-size", type=int, default=100000)
+    parser.add_argument("--buffer-size", type=int, default=100_000) # 将 1,000,000 降为 10w 防止家用电脑 OOM
     parser.add_argument("--batch-size", type=int, default=32)
-    parser.add_argument("--eps-decay", type=int, default=1_000_000)
+    parser.add_argument("--eps-decay", type=int, default=250_000)
     parser.add_argument("--target-update", type=int, default=10000)
     parser.add_argument("--save-dir", default="results")
     parser.add_argument("--save-interval", type=int, default=500)
@@ -69,10 +69,13 @@ def main():
 
             # 存经验 → 学习
             agent.replay_buffer.push(obs, action, reward, next_obs, done)
-            loss = agent.learn()
-            if loss is not None:
-                episode_loss += loss
-                loss_count += 1
+            
+            # 加入预热期并降低训练频率
+            if step >= 10000 and step % 4 == 0:
+                loss = agent.learn()
+                if loss is not None:
+                    episode_loss += loss
+                    loss_count += 1
 
             obs = next_obs
             total_reward += reward
@@ -91,7 +94,7 @@ def main():
         elapsed = str(timedelta(seconds=int(time() - start_time)))
         print(
             f"Ep {ep:5d} | reward: {total_reward:7.1f} | loss: {avg_loss:.5f} | "
-            f"eps: {agent.eps_end + (agent.eps_start - agent.eps_end) * (2.71828 ** (-agent.steps_done / agent.eps_decay)):.3f} | "
+            f"eps: {max(agent.eps_end, agent.eps_start - agent.steps_done * (agent.eps_start - agent.eps_end) / agent.eps_decay):.3f} | "
             f"steps: {step} | time: {elapsed}"
         )
 

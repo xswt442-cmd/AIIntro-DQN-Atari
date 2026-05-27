@@ -51,6 +51,12 @@ class MaxAndSkipEnv(gym.Wrapper):
         self._obs_buffer = deque(maxlen=2)
         self._skip = skip
 
+    def reset(self, **kwargs):
+        self._obs_buffer.clear()
+        obs, info = self.env.reset(**kwargs)
+        self._obs_buffer.append(obs)
+        return obs, info
+
     def step(self, action):
         total_reward = 0.0
         for _ in range(self._skip):

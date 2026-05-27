@@ -17,11 +17,11 @@ class DQNAgent:
         n_actions,
         lr=2.5e-4,
         gamma=0.99,
-        buffer_size=100000,
+        buffer_size=1_000_000,
         batch_size=32,
         eps_start=1.0,
-        eps_end=0.01,
-        eps_decay=1_000_000,
+        eps_end=0.1,  # 保留 10% 探索以捕获稀有正向奖励
+        eps_decay=250_000,  # 原论文：1M frames / frame_skip=4 = 250K steps
         target_update=10000,
         device="cpu",
     ):
@@ -47,11 +47,11 @@ class DQNAgent:
         self.steps_done = 0
 
     def act(self, state, training=True):
-        """ε-greedy 动作选择：训练时指数衰减探索率"""
+        """ε-greedy 动作选择：训练时线性衰减探索率，eps_decay 步内从 eps_start 降至 eps_end"""
         if training:
-            eps = self.eps_end + (self.eps_start - self.eps_end) * np.exp(
-                -self.steps_done / self.eps_decay
-            )
+            # 延迟 exploration_decay 直到开始训练（10000步以后）
+            decay_steps = max(0, self.steps_done - 10000)
+            eps = max(self.eps_end, self.eps_start - decay_steps * (self.eps_start - self.eps_end) / self.eps_decay)
             self.steps_done += 1
         else:
             eps = 0.01  # 评估时小概率随机，避免卡死
